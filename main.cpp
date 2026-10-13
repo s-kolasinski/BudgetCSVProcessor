@@ -13,18 +13,50 @@ class Expense{
         Expense(const std::string& date, const std::string& description, const double amount): 
         date(date), description(description), amount(amount){};
 
-        std::string get_date(){
-            return (const std::string&)date;
-        };
+        const std::string& get_date() const{
+            return date;
+        }
 
-        std::string get_description(){
-            return (const std::string&)description;
-        };
+        const std::string& get_description() const{
+            return description;
+        }
 
-        double get_amount(){
-            return (const double)amount;
-        };
+        const double get_amount() const{
+            return amount;
+        }
 
+        void set_category(const std::string& new_category){
+            category = new_category;
+        }
+
+        const std::string& get_category() const{
+            return category;
+        }
+
+};
+
+
+class CategorizationRule{
+    public:
+        virtual bool apply(Expense& expense) = 0;
+        virtual ~CategorizationRule() = default;
+};
+
+class KeywordRule : public CategorizationRule{
+    private:
+        std::string keyword;
+        std::string target_category;
+    public:
+        KeywordRule(const std::string& kw, const std::string& tc): 
+        keyword(kw), target_category(tc){}
+        bool apply(Expense& expense) override{
+            if(expense.get_description().find(keyword) != std::string::npos){
+                expense.set_category(target_category);
+                return true;
+            }else{
+                return false;
+            }
+        }
 };
 
 
@@ -34,9 +66,17 @@ int main(){
     v1.push_back(Expense("8.10.2026", "Biedronka", 26.48)); 
     v1.push_back(Expense("6.10.2026", "Zabka", 18.05));
     v1.push_back(Expense("1.10.2026", "Lidl", 150.43));
+    
+    KeywordRule food("Biedronka", "Spozywcze");
+
+    std::vector<CategorizationRule*> rules;
+
+    rules.push_back(&food);
+
     for(auto& expense : v1){
-        std::cout << "date: " << expense.get_date() << "\n";
-        std::cout << "description: " <<expense.get_description() << "\n";
-        std::cout << "amount: " << expense.get_amount() << "\n";
+        for(auto rule : rules){
+            if(rule->apply(expense)) break;
+        }
+        std::cout << expense.get_category() << std::endl;
     }
 }
